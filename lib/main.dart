@@ -11,12 +11,12 @@ class WeatherApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'แอพพยากรณ์อากาศ',
+      title: 'พยากรณ์อากาศ',
       theme: ThemeData(
         primaryColor: Colors.blue,
         colorScheme: ColorScheme.fromSwatch()
             .copyWith(secondary: Colors.lightBlueAccent),
-        fontFamily: 'Roboto', // ใช้ฟอนต์ Roboto
+        fontFamily: 'Noto', // ใช้ฟอนต์ Noto
       ),
       home: const WeatherScreen(),
     );
@@ -32,16 +32,11 @@ class WeatherScreen extends StatefulWidget {
 
 class WeatherScreenState extends State<WeatherScreen> {
   final Map<String, String> cities = {
-    'Doem Bang Nang Buat': 'เดิมบางนางบวช',
-    'Uthai Thani': 'อุทัยธานี',
-    'Song Phi Nong': 'สองพี่น้อง',
-    'Don Chedi': 'ดอนเจดีย์',
-    'Bang Pla Ma': 'บางปลาม้า',
-    'Si Prachan': 'ศรีประจันต์',
-    'Kanchanadit': 'กันทรารมย์',
+    'Bangkok': 'กรุงเทพมหานคร',
+    'Chiang Mai': 'เชียงใหม่',
   };
   final Map<String, dynamic> _weatherData = {};
-  final PageController _pageController = PageController();
+  final PageController pageController = PageController();
   int _selectedIndex = 0;
 
   @override
@@ -73,11 +68,38 @@ class WeatherScreenState extends State<WeatherScreen> {
     }
   }
 
-  // เพิ่มฟังก์ชันในการเปลี่ยนหน้า
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  void _showCitySelectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('เลือกเมือง'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: cities.keys.map((cityName) {
+                return ListTile(
+                  title: Text(cities[cityName]!),
+                  onTap: () {
+                    Navigator.pop(context); // ปิด Dialog
+                    setState(() {
+                      // ตรวจสอบให้แน่ใจว่า _selectedIndex อยู่ในขอบเขตที่ถูกต้อง
+                      int newIndex = cities.keys.toList().indexOf(cityName);
+                      if (newIndex >= 0 && newIndex < cities.length) {
+                        _selectedIndex = newIndex;
+                        // เปลี่ยนหน้าใน PageView
+                        pageController.jumpToPage(_selectedIndex);
+                        // ดึงข้อมูลอากาศของเมืองที่เลือก
+                        _fetchWeatherData(cityName);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -86,7 +108,7 @@ class WeatherScreenState extends State<WeatherScreen> {
       backgroundColor: Colors.blue.shade700,
       appBar: AppBar(
         title: const Text(
-          '🌤️ แอพพยากรณ์อากาศ',
+          '🌤️ พยากรณ์อากาศ',
           style: TextStyle(color: Colors.white), // Set text color to white
         ),
         backgroundColor: Colors.blue.shade700,
@@ -100,14 +122,26 @@ class WeatherScreenState extends State<WeatherScreen> {
                 : SwiperWidget(
                     cities: cities,
                     weatherData: _weatherData,
-                    pageController: _pageController,
+                    pageController: pageController, // แก้เป็น pageController
                   ),
           ),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) {
+          setState(() {
+            if (index >= 0 && index < 2) {
+              // ตรวจสอบให้แน่ใจว่า index อยู่ในขอบเขต
+              _selectedIndex = index;
+            }
+          });
+
+          if (index == 1) {
+            // แสดง Dialog เมื่อต้องการเลือกเมือง
+            _showCitySelectionDialog(context);
+          }
+        },
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -143,6 +177,7 @@ class SwiperWidget extends StatelessWidget {
       itemBuilder: (context, index) {
         final cityEnglish = cities.keys.elementAt(index);
         final cityThai = cities[cityEnglish]!;
+
         final cityWeather = weatherData[cityEnglish]?['current'];
 
         if (cityWeather == null) {
@@ -177,18 +212,15 @@ class SwiperWidget extends StatelessWidget {
               Center(
                 child: Image.network(
                   'https:${cityWeather['condition']['icon']}',
-                  width: 100, // You can still define a larger width or height for the container
-                  height: 100, // to control the space
-                  fit: BoxFit
-                      .contain, // Ensures the icon scales up without distortion
+                  width: 100,
+                  height: 100,
+                  fit: BoxFit.contain,
                 ),
               ),
               Center(
                 child: Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center, // Centers vertically
-                  crossAxisAlignment:
-                      CrossAxisAlignment.center, // Centers horizontally
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       '${cityWeather['temp_c']}°C',
