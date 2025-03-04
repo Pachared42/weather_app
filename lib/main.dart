@@ -32,17 +32,17 @@ class WeatherScreen extends StatefulWidget {
 
 class WeatherScreenState extends State<WeatherScreen> {
   final Map<String, String> cities = {
-  'Doem Bang Nang Buat': 'เดิมบางนางบวช',
-  'Uthai Thani': 'อุทัยธานี',
-  'Song Phi Nong': 'สองพี่น้อง',
-  'Don Chedi': 'ดอนเจดีย์',
-  'Bang Pla Ma': 'บางปลาม้า',
-  'Si Prachan': 'ศรีประจันต์',
-  'Kanchanadit': 'กันทรารมย์',
-};
+    'Doem Bang Nang Buat': 'เดิมบางนางบวช',
+    'Uthai Thani': 'อุทัยธานี',
+    'Song Phi Nong': 'สองพี่น้อง',
+    'Don Chedi': 'ดอนเจดีย์',
+    'Bang Pla Ma': 'บางปลาม้า',
+    'Si Prachan': 'ศรีประจันต์',
+    'Kanchanadit': 'กันทรารมย์',
+  };
   final Map<String, dynamic> _weatherData = {};
-  final TextEditingController _cityController = TextEditingController();
   final PageController _pageController = PageController();
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -73,60 +73,27 @@ class WeatherScreenState extends State<WeatherScreen> {
     }
   }
 
-  void _addCity() {
-    final cityName = _cityController.text.trim();
-    if (cityName.isNotEmpty && !cities.containsValue(cityName)) {
-      setState(() {
-        cities[cityName] = cityName;
-      });
-      _fetchWeatherData(cityName);
-      _cityController.clear();
-    }
+  // เพิ่มฟังก์ชันในการเปลี่ยนหน้า
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[100],
+      backgroundColor: Colors.blue.shade700,
       appBar: AppBar(
-        title: const Text('🌤️ แอพพยากรณ์อากาศ'),
+        title: const Text(
+          '🌤️ แอพพยากรณ์อากาศ',
+          style: TextStyle(color: Colors.white), // Set text color to white
+        ),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _cityController,
-                    decoration: InputDecoration(
-                      labelText: '🔍 เพิ่มเมือง (ภาษาอังกฤษ)',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _addCity,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: const Text(
-                    'เพิ่ม',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-          ),
           Expanded(
             child: _weatherData.isEmpty
                 ? const Center(child: CircularProgressIndicator())
@@ -135,6 +102,20 @@ class WeatherScreenState extends State<WeatherScreen> {
                     weatherData: _weatherData,
                     pageController: _pageController,
                   ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.menu),
+            label: 'Other Cities',
           ),
         ],
       ),
@@ -190,37 +171,112 @@ class SwiperWidget extends StatelessWidget {
           ),
           margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(
-                'https:${cityWeather['condition']['icon']}',
-                width: 100,
-                height: 100,
+              Center(
+                child: Image.network(
+                  'https:${cityWeather['condition']['icon']}',
+                  width: 100, // You can still define a larger width or height for the container
+                  height: 100, // to control the space
+                  fit: BoxFit
+                      .contain, // Ensures the icon scales up without distortion
+                ),
               ),
-              Text(
-                '${cityWeather['temp_c']}°C',
-                style: const TextStyle(
-                    fontSize: 60,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+              Center(
+                child: Column(
+                  mainAxisAlignment:
+                      MainAxisAlignment.center, // Centers vertically
+                  crossAxisAlignment:
+                      CrossAxisAlignment.center, // Centers horizontally
+                  children: [
+                    Text(
+                      '${cityWeather['temp_c']}°C',
+                      style: const TextStyle(
+                          fontSize: 60,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    Text(
+                      cityThai,
+                      style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      'สภาพอากาศ: ${cityWeather['condition']['text']}',
+                      style: const TextStyle(fontSize: 20, color: Colors.white),
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                cityThai,
-                style: const TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white),
+              const SizedBox(height: 20),
+              // Box for temperature feels like
+              _buildInfoBox(
+                title: 'อุณหภูมิที่รู้สึก:',
+                value: '${cityWeather['feelslike_c']}°C',
               ),
               const SizedBox(height: 10),
-              Text(
-                'สภาพอากาศ: ${cityWeather['condition']['text']}',
-                style: const TextStyle(fontSize: 20, color: Colors.white),
+              // Box for wind speed and direction
+              _buildInfoBox(
+                title: 'ความเร็วลม:',
+                value:
+                    '${cityWeather['wind_kph']} km/h (${cityWeather['wind_dir']})',
+              ),
+              const SizedBox(height: 10),
+              // Box for humidity
+              _buildInfoBox(
+                title: 'ความชื้นในอากาศ:',
+                value: '${cityWeather['humidity']}%',
+              ),
+              const SizedBox(height: 10),
+              // Box for pressure
+              _buildInfoBox(
+                title: 'ความดันอากาศ:',
+                value: '${cityWeather['pressure_mb']} mb',
+              ),
+              const SizedBox(height: 10),
+              // Box for visibility
+              _buildInfoBox(
+                title: 'การมองเห็น:',
+                value: '${cityWeather['vis_km']} km',
+              ),
+              const SizedBox(height: 10),
+              // Box for UV index
+              _buildInfoBox(
+                title: 'ดัชนี UV:',
+                value: '${cityWeather['uv']}',
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  // Helper function to build information boxes
+  Widget _buildInfoBox({required String title, required String value}) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 }
