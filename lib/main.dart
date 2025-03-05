@@ -34,10 +34,60 @@ class WeatherScreenState extends State<WeatherScreen> {
   final Map<String, String> cities = {
     'Bangkok': 'กรุงเทพมหานคร',
     'Chiang Mai': 'เชียงใหม่',
+    'Phuket': 'ภูเก็ต',
+    'Ayutthaya': 'พระนครศรีอยุธยา',
+    'Khon Kaen': 'ขอนแก่น',
+    'Chonburi': 'ชลบุรี',
+    'Nakhon Ratchasima': 'นครราชสีมา',
+    'Hua Hin': 'หัวหิน',
+    'Samut Prakan': 'สมุทรปราการ',
+    'Nakhon Pathom': 'นครปฐม',
+    'Songkhla': 'สงขลา',
+    'Udon Thani': 'อุดรธานี',
+    'Surat Thani': 'สุราษฎร์ธานี',
+    'Nonthaburi': 'นนทบุรี',
+    'Pathum Thani': 'ปทุมธานี',
+    'Chachoengsao': 'ฉะเชิงเทรา',
+    'Sukhothai': 'สุโขทัย',
+    'Nakhon Si Thammarat': 'นครศรีธรรมราช',
+    'Pattaya': 'พัทยา',
+    'Lampang': 'ลำปาง',
+    'Nakhon Sawan': 'นครสวรรค์',
+    'Rayong': 'ระยอง',
+    'Loei': 'เลย',
+    'Prachuap Khiri Khan': 'ประจวบคีรีขันธ์',
+    'Roi Et': 'ร้อยเอ็ด',
+    'Sakon Nakhon': 'สกลนคร',
+    'Trang': 'ตรัง',
+    'Ubon Ratchathani': 'อุบลราชธานี',
+    'Kanchanaburi': 'กาญจนบุรี',
+    'Krabi': 'กระบี่',
+    'Chaiyaphum': 'ชัยภูมิ',
+    'Amnat Charoen': 'อำนาจเจริญ',
+    'Chumphon': 'ชุมพร',
+    'Kalasin': 'กาฬสินธุ์',
+    'Phetchabun': 'เพชรบูรณ์',
+    'Mae Hong Son': 'แม่ฮ่องสอน',
+    'Samut Songkhram': 'สมุทรสงคราม',
+    'Singburi': 'สิงห์บุรี',
+    'Satun': 'สตูล',
+    'Nakhon Nayok': 'นครนายก',
+    'Yasothon': 'ยโสธร',
+    'Phetchaburi': 'เพชรบุรี',
+    'Nong Khai': 'หนองคาย',
+    'Buriram': 'บุรีรัมย์',
+    'Chai Nat': 'ชัยนาท',
+    'Phayao': 'พะเยา',
+    'Phichit': 'พิษณุโลก',
+    'Phrae': 'แพร่',
+    'Tak': 'ตาก',
+    'Nan': 'น่าน',
+    'Mukdahan': 'มุกดาหาร',
+    'Surin': 'สุรินทร์',
+    'Phatthalung': 'พัทลุง',
   };
   final Map<String, dynamic> _weatherData = {};
   final PageController pageController = PageController();
-  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -68,35 +118,37 @@ class WeatherScreenState extends State<WeatherScreen> {
     }
   }
 
-  void _showCitySelectionDialog(BuildContext context) {
+  void _searchCity(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) {
+        String query = '';
         return AlertDialog(
-          title: const Text('เลือกเมือง'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: cities.keys.map((cityName) {
-                return ListTile(
-                  title: Text(cities[cityName]!),
-                  onTap: () {
-                    Navigator.pop(context); // ปิด Dialog
-                    setState(() {
-                      // ตรวจสอบให้แน่ใจว่า _selectedIndex อยู่ในขอบเขตที่ถูกต้อง
-                      int newIndex = cities.keys.toList().indexOf(cityName);
-                      if (newIndex >= 0 && newIndex < cities.length) {
-                        _selectedIndex = newIndex;
-                        // เปลี่ยนหน้าใน PageView
-                        pageController.jumpToPage(_selectedIndex);
-                        // ดึงข้อมูลอากาศของเมืองที่เลือก
-                        _fetchWeatherData(cityName);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
+          title: const Text('ค้นหาเมือง'),
+          content: TextField(
+            onChanged: (value) {
+              query = value;
+            },
+            decoration: const InputDecoration(hintText: 'กรอกชื่อเมือง'),
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (query.isNotEmpty) {
+                  setState(() {
+                    cities[query] = query; // Add the searched city dynamically
+                  });
+                  _fetchWeatherData(query); // ฟังก์ชันค้นหาข้อมูลเมือง
+                }
+                Navigator.pop(context);
+              },
+              child: const Text('ค้นหา'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('ยกเลิก'),
+            ),
+          ],
         );
       },
     );
@@ -113,6 +165,12 @@ class WeatherScreenState extends State<WeatherScreen> {
         ),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => _searchCity(context), // เพิ่มปุ่มค้นหา
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -124,32 +182,6 @@ class WeatherScreenState extends State<WeatherScreen> {
                     weatherData: _weatherData,
                     pageController: pageController, // แก้เป็น pageController
                   ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            if (index >= 0 && index < 2) {
-              // ตรวจสอบให้แน่ใจว่า index อยู่ในขอบเขต
-              _selectedIndex = index;
-            }
-          });
-
-          if (index == 1) {
-            // แสดง Dialog เมื่อต้องการเลือกเมือง
-            _showCitySelectionDialog(context);
-          }
-        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.menu),
-            label: 'Other Cities',
           ),
         ],
       ),
@@ -291,21 +323,26 @@ class SwiperWidget extends StatelessWidget {
   // Helper function to build information boxes
   Widget _buildInfoBox({required String title, required String value}) {
     return Container(
-      padding: const EdgeInsets.all(15),
+      padding: const EdgeInsets.all(12), // ลดขนาด padding
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white.withValues(alpha: 0.8), // ปรับความทึบของสีให้เบาลง
+        borderRadius: BorderRadius.circular(8), // ลดขนาด border radius
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
             title,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 16, // ลดขนาดฟอนต์
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 16),
+            style: const TextStyle(
+              fontSize: 16, // ลดขนาดฟอนต์
+            ),
           ),
         ],
       ),

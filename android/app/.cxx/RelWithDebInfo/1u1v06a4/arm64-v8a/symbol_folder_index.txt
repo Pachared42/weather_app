@@ -1,0 +1,1 @@
+C:\Users\User\Documents\GitHub\weather_app\build\app\intermediates\cxx\RelWithDebInfo\1u1v06a4\obj\arm64-v8a

@@ -1,0 +1,2 @@
+C:/Users/User/Documents/GitHub/weather_app/android/app/.cxx/RelWithDebInfo/1u1v06a4/x86_64/CMakeFiles/edit_cache.dir
+C:/Users/User/Documents/GitHub/weather_app/android/app/.cxx/RelWithDebInfo/1u1v06a4/x86_64/CMakeFiles/rebuild_cache.dir
