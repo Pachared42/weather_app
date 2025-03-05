@@ -16,7 +16,7 @@ class WeatherApp extends StatelessWidget {
         primaryColor: Colors.blue,
         colorScheme: ColorScheme.fromSwatch()
             .copyWith(secondary: Colors.lightBlueAccent),
-        fontFamily: 'Noto', // ใช้ฟอนต์ Noto
+        fontFamily: 'Noto',
       ),
       home: const WeatherScreen(),
     );
@@ -86,6 +86,7 @@ class WeatherScreenState extends State<WeatherScreen> {
     'Surin': 'สุรินทร์',
     'Phatthalung': 'พัทลุง',
   };
+
   final Map<String, dynamic> _weatherData = {};
   final PageController pageController = PageController();
 
@@ -98,23 +99,28 @@ class WeatherScreenState extends State<WeatherScreen> {
   }
 
   Future<void> _fetchWeatherData(String cityName) async {
-    if (_weatherData.containsKey(cityName)) return;
+    debugPrint("🔄 Fetching weather for $cityName...");
 
-    const apiKey = '286ff72d898b423fb80142821250203';
+    const apiKey = 'e6121fa2ee63475fb4d161504250503';
     final url =
         'https://api.weatherapi.com/v1/current.json?key=$apiKey&q=$cityName&aqi=no';
 
     try {
       final response = await http.get(Uri.parse(url));
+
+      debugPrint("📥 Response Code: ${response.statusCode}");
+      debugPrint("📦 Response Body: ${response.body}");
+
       if (response.statusCode == 200) {
         setState(() {
           _weatherData[cityName] = json.decode(response.body);
         });
       } else {
+        debugPrint("❌ Failed to load weather data");
         throw Exception('Failed to load weather data');
       }
     } catch (error) {
-      debugPrint('Error fetching $cityName: $error');
+      debugPrint('⚠️ Error fetching $cityName: $error');
     }
   }
 
@@ -136,9 +142,9 @@ class WeatherScreenState extends State<WeatherScreen> {
               onPressed: () {
                 if (query.isNotEmpty) {
                   setState(() {
-                    cities[query] = query; // Add the searched city dynamically
+                    cities[query] = query;
                   });
-                  _fetchWeatherData(query); // ฟังก์ชันค้นหาข้อมูลเมือง
+                  _fetchWeatherData(query);
                 }
                 Navigator.pop(context);
               },
@@ -161,14 +167,14 @@ class WeatherScreenState extends State<WeatherScreen> {
       appBar: AppBar(
         title: const Text(
           '🌤️ พยากรณ์อากาศ',
-          style: TextStyle(color: Colors.white), // Set text color to white
+          style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Colors.blue.shade700,
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
-            onPressed: () => _searchCity(context), // เพิ่มปุ่มค้นหา
+            onPressed: () => _searchCity(context),
           ),
         ],
       ),
@@ -180,7 +186,7 @@ class WeatherScreenState extends State<WeatherScreen> {
                 : SwiperWidget(
                     cities: cities,
                     weatherData: _weatherData,
-                    pageController: pageController, // แก้เป็น pageController
+                    pageController: pageController,
                   ),
           ),
         ],
@@ -277,38 +283,32 @@ class SwiperWidget extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 20),
-              // Box for temperature feels like
               _buildInfoBox(
                 title: 'อุณหภูมิที่รู้สึก:',
                 value: '${cityWeather['feelslike_c']}°C',
               ),
               const SizedBox(height: 10),
-              // Box for wind speed and direction
               _buildInfoBox(
                 title: 'ความเร็วลม:',
                 value:
                     '${cityWeather['wind_kph']} km/h (${cityWeather['wind_dir']})',
               ),
               const SizedBox(height: 10),
-              // Box for humidity
               _buildInfoBox(
                 title: 'ความชื้นในอากาศ:',
                 value: '${cityWeather['humidity']}%',
               ),
               const SizedBox(height: 10),
-              // Box for pressure
               _buildInfoBox(
                 title: 'ความดันอากาศ:',
                 value: '${cityWeather['pressure_mb']} mb',
               ),
               const SizedBox(height: 10),
-              // Box for visibility
               _buildInfoBox(
                 title: 'การมองเห็น:',
                 value: '${cityWeather['vis_km']} km',
               ),
               const SizedBox(height: 10),
-              // Box for UV index
               _buildInfoBox(
                 title: 'ดัชนี UV:',
                 value: '${cityWeather['uv']}',
@@ -320,13 +320,12 @@ class SwiperWidget extends StatelessWidget {
     );
   }
 
-  // Helper function to build information boxes
   Widget _buildInfoBox({required String title, required String value}) {
     return Container(
-      padding: const EdgeInsets.all(12), // ลดขนาด padding
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8), // ปรับความทึบของสีให้เบาลง
-        borderRadius: BorderRadius.circular(8), // ลดขนาด border radius
+        color: Colors.white.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -334,14 +333,14 @@ class SwiperWidget extends StatelessWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16, // ลดขนาดฟอนต์
+              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 16, // ลดขนาดฟอนต์
+              fontSize: 16,
             ),
           ),
         ],

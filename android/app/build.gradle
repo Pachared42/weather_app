@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.weather_app"
+    namespace = "com.example.weather_app"  // กำหนด namespace ที่นี่
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
